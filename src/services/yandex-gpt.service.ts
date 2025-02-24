@@ -8,8 +8,7 @@ export class YandexGptService {
     private readonly FOLDER_ID = process.env.YANDEX_FOLDER_ID;
 
     async generateText(prompt: string): Promise<string> {
-        console.log("YANDEX_API_KEY:", this.API_KEY ? this.API_KEY : "Не найден");
-        console.log("YANDEX_FOLDER_ID:", this.FOLDER_ID ? this.FOLDER_ID : "Не найден");
+
 
         try {
             const requestBody = {
@@ -18,7 +17,6 @@ export class YandexGptService {
                 messages: [{ role: 'user', text: prompt }]
             };
 
-            console.log("Отправка запроса:", requestBody);
 
             const response = await axios.post(
                 this.API_URL,
