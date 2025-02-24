@@ -28,18 +28,49 @@ export class ChatHistoryService {
         })
     }
 
+    // async updateChatHistory(userId: string, messages: Message[]) {
+    //     return this.prisma.chatHistory.update({
+    //         where: {
+    //             userId: userId,
+    //         },
+    //         data: {
+    //             messages: {
+    //                 create: messages,
+    //             },
+    //         },
+    //     });
+    // }
+
     async updateChatHistory(userId: string, messages: Message[]) {
+        const chatHistory = await this.prisma.chatHistory.findUnique({
+            where: { userId },
+        });
+
+        if (!chatHistory) {
+            return this.prisma.chatHistory.create({
+                data: {
+                    userId: userId,
+                    messages: {
+                        createMany: {
+                            data: messages,
+                        },
+                    },
+                },
+            });
+        }
+
         return this.prisma.chatHistory.update({
-            where: {
-                userId: userId,
-            },
+            where: { userId },
             data: {
                 messages: {
-                    create: messages,
+                    createMany: {
+                        data: messages,
+                    },
                 },
             },
         });
     }
+
 
     async deleteChatHistory(userId: string) {
         return this.prisma.chatHistory.delete({
