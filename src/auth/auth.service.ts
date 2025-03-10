@@ -9,21 +9,32 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
-    const { name, surname, email, password } = registerDto;
+    const { name, surname, email, password, userType } = registerDto;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await this.prisma.user.create({
-      data: {
-        name,
-        surname,
-        email,
-        password: hashedPassword,
-      },
-    });
+    const user =
+      userType === 'admin' ? await this.prisma.admin.create({
+        data: {
+          name,
+          surname,
+          email,
+          password: hashedPassword,
+          userType
+        },
+      })
+        :
+        await this.prisma.user.create({
+          data: {
+            name,
+            surname,
+            email,
+            password: hashedPassword,
+          },
+        });
 
     return { id: user.id, email: user.email };
   }
@@ -36,7 +47,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { userId: user.id, email: user.email, name: user.name, surname: user.surname};
+    const payload = { userId: user.id, email: user.email, name: user.name, surname: user.surname };
     const accessToken = this.jwtService.sign(payload);
 
     return { accessToken };
