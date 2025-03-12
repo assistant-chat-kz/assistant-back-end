@@ -52,4 +52,18 @@ export class AuthService {
 
     return { accessToken };
   }
+
+  async loginAdmin(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
+    const admin = await this.prisma.admin.findUnique({ where: { email } });
+    if (!admin || !(await bcrypt.compare(password, admin.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { userId: admin.id, email: admin.email, name: admin.name, surname: admin.surname, userType: admin };
+    const accessToken = this.jwtService.sign(payload);
+
+    return { accessToken };
+  }
 }
