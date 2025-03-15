@@ -26,15 +26,23 @@ export class AuthService {
           userType
         },
       })
-        :
-        await this.prisma.user.create({
+        : userType === 'psychologist' ? await this.prisma.psychologist.create({
           data: {
             name,
             surname,
             email,
             password: hashedPassword,
+            userType
           },
-        });
+        }) :
+          await this.prisma.user.create({
+            data: {
+              name,
+              surname,
+              email,
+              password: hashedPassword,
+            },
+          });
 
     return { id: user.id, email: user.email };
   }
@@ -61,9 +69,24 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { userId: admin.id, email: admin.email, name: admin.name, surname: admin.surname, userType: admin };
+    const payload = { userId: admin.id, email: admin.email, name: admin.name, surname: admin.surname, userType: 'admin' };
     const accessToken = this.jwtService.sign(payload);
 
     return { accessToken };
   }
+
+  async loginPsychologist(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
+    const psychologist = await this.prisma.psychologist.findUnique({ where: { email } });
+    if (!psychologist || !(await bcrypt.compare(password, psychologist.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { userId: psychologist.id, email: psychologist.email, name: psychologist.name, surname: psychologist.surname, userType: 'psychologist' };
+    const accessToken = this.jwtService.sign(payload);
+
+    return { accessToken };
+  }
+
 }

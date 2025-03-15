@@ -31,6 +31,16 @@ model Admin {
   userType  String
 }
 
+model Psychologist {
+  id        String   @id @default(cuid())
+  name      String
+  surname   String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  password  String
+  userType  String
+}
+
 model Message {
   id       Int         @id @default(autoincrement())
   chatId   String
