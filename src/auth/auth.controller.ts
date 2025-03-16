@@ -20,4 +20,9 @@ export class AuthController {
   async loginAdmin(@Body() loginDto: LoginDto) {
     return this.authService.loginAdmin(loginDto);
   }
+
+  @Post('loginPsychologist')
+  async loginPsychologist(@Body() loginDto: LoginDto) {
+    return this.authService.loginPsychologist(loginDto);
+  }
 }

@@ -11,12 +11,13 @@ import { ChatHistoryService } from './chat-history/chat-history.service';
 import { PrismaService } from './prisma.service'
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
-
+import { PsychologistController } from './psychologist/psychologist.contoller';
+import { PsychologistService } from './psychologist/psychologist.service';
 
 @Module({
   imports: [AuthModule],
-  controllers: [AppController, YandexGptController, UserController, ChatHistoryController, AdminController],
-  providers: [AppService, YandexGptService, UserService, ChatHistoryService, AdminService, PrismaService],
+  controllers: [AppController, YandexGptController, UserController, ChatHistoryController, AdminController, PsychologistController],
+  providers: [AppService, YandexGptService, UserService, ChatHistoryService, AdminService, PrismaService, PsychologistService],
   exports: [YandexGptService, ChatHistoryService]
 })
 export class AppModule { }
