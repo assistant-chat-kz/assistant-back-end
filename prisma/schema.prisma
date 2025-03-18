@@ -42,16 +42,16 @@ model Psychologist {
 }
 
 model Message {
-  id       Int         @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
   chatId   String
   title    String
-  // position Position
   position String
   text     String
-  chat     ChatHistory @relation(fields: [chatId], references: [userId])
+  chat     Chat   @relation(fields: [chatId], references: [chatId])
 }
 
-model ChatHistory {
-  userId   String    @id
+model Chat {
+  chatId   String    @id
+  members  String[]
   messages Message[]
 }
