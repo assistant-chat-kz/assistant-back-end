@@ -11,12 +11,17 @@ export class ChatController {
     }
 
     @Get(':chatId')
-    getChat(@Param('userId') userId: string) {
-        return this.chatService.getChat(userId)
+    getChat(@Param('chatId') chatId: string) {
+        return this.chatService.getChat(chatId)
+    }
+
+    @Get()
+    getAllChats() {
+        return this.chatService.getAllChats()
     }
 
     @Put(':chatId')
-    updateChat(@Param('userId') userId: string, @Body() body: { userId: string, messages: any[], members: string[] }) {
-        return this.chatService.updateChat(userId, body.messages, body.members)
+    updateChat(@Param('chatId') chatId: string, @Body() body: { chatId: string, messages: any[], members: string[] }) {
+        return this.chatService.updateChat(chatId, body.messages, body.members)
     }
 } 

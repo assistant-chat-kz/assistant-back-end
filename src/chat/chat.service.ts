@@ -8,8 +8,6 @@ export class ChatService {
 
     async createChat(chatId: string, messages: { title: string; text: string; position: string }[], members: string[]) {
 
-        console.log('chatId:', chatId);
-
         const chat = await this.prisma.chat.create({
             data: {
                 chatId,
@@ -37,24 +35,11 @@ export class ChatService {
         })
     }
 
-    async updateChat(chatId: string, messages: Message[], members: string[]) {
-        const chat = await this.prisma.chat.findUnique({
-            where: { chatId },
-        });
+    async getAllChats() {
+        return this.prisma.chat.findMany({})
+    }
 
-        if (!chat) {
-            return this.prisma.chat.create({
-                data: {
-                    chatId,
-                    members,
-                    messages: {
-                        createMany: {
-                            data: messages,
-                        },
-                    },
-                },
-            });
-        }
+    async updateChat(chatId: string, messages: Message[], members: string[]) {
 
         return this.prisma.chat.update({
             where: { chatId },
