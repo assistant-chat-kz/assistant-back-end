@@ -16,8 +16,6 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    console.log(userType, 'userType')
-
     const user =
       userType === 'admin' ? await this.prisma.admin.create({
         data: {

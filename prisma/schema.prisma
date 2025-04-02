@@ -54,4 +54,5 @@ model Chat {
   chatId   String    @id
   members  String[]
   messages Message[]
+  call     Boolean   @default(false)
 }

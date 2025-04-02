@@ -47,15 +47,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             this.users.delete(userId);
 
-            const chatIds = this.userRooms.get(userId) || new Set();
+            // const chatIds = this.userRooms.get(userId) || new Set();
 
-            chatIds.forEach(async (chatId) => {
-                const updatedChat = await this.chatService.leaveChat(chatId, userId);
+            // chatIds.forEach(async (chatId) => {
+            //     const updatedChat = await this.chatService.leaveChat(chatId, userId);
 
-                console.log(`📌🔴 Пользователь ${userId} вышел из чата ${chatId}`);
+            //     console.log(`📌🔴 Пользователь ${userId} вышел из чата ${chatId}`);
 
-                this.server.to(chatId).emit("userLeave", { userId, chatId, members: updatedChat.members });
-            });
+            //     this.server.to(chatId).emit("userLeave", { userId, chatId, members: updatedChat.members });
+            // });
 
             this.userRooms.delete(userId);
 

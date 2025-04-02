@@ -24,4 +24,8 @@ export class ChatController {
     updateChat(@Param('chatId') chatId: string, @Body() body: { chatId: string, messages: any[], members: string[] }) {
         return this.chatService.updateChat(chatId, body.messages, body.members)
     }
+    @Put(':chatId/call')
+    callPsyInChat(@Param('chatId') chatId: string, @Body() body: { call: boolean }) {
+        return this.chatService.callPsyInChat(chatId, body.call)
+    }
 } 

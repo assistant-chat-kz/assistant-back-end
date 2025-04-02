@@ -137,6 +137,28 @@ export class ChatService {
         }
     }
 
+    async callPsyInChat(chatId: string, call: boolean) {
+        try {
+            const chat = await this.prisma.chat.findUnique({
+                where: { chatId: chatId }
+            });
+
+            if (!chat) throw new Error("Чат не найден");
+
+
+            const updatedChat = await this.prisma.chat.update({
+                where: { chatId: chatId },
+                data: { call: call },
+            });
+
+
+            return updatedChat
+        } catch (error) {
+            console.error("❌ Ошибка в callPsyInChat:", error.message);
+            throw error;
+        }
+    }
+
 
     async getAllChats() {
         return this.prisma.chat.findMany({})
