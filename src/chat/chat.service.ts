@@ -170,4 +170,19 @@ export class ChatService {
             include: { messages: true }
         })
     }
+
+    async getLastMessage(chatId: string) {
+        const chat = await this.prisma.chat.findUnique({
+            where: { chatId },
+            select: {
+                messages: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                }
+            }
+        });
+
+        return chat?.messages?.[0] || null;
+    }
+
 }

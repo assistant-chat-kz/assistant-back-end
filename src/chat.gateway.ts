@@ -126,5 +126,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(data.chatId).emit("newMessage", data.message);
     }
 
-
+    sendSurvey(chatId: string) {
+        this.server.to(chatId).emit("send-survey", {
+            chatId,
+            message: "Прошло 5 минут без активности. Пожалуйста, пройдите опрос.",
+        });
+        console.log(`📋 Опросник отправлен в чат ${chatId}`);
+    }
 }

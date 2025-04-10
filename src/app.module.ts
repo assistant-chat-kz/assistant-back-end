@@ -14,11 +14,16 @@ import { AdminService } from './admin/admin.service';
 import { PsychologistController } from './psychologist/psychologist.contoller';
 import { PsychologistService } from './psychologist/psychologist.service';
 import { ChatModule } from './chat/chat.module';
+import { ConsultationController } from './consultation/consultation.controller';
+import { ConsultationService } from './consultation/consultation.service';
+
+import { ScheduleModule } from '@nestjs/schedule';
+import { ChatMonitorService } from './chat.monitor.service';
 
 @Module({
-  imports: [AuthModule, ChatModule],
-  controllers: [AppController, YandexGptController, UserController, AdminController, PsychologistController],
-  providers: [AppService, YandexGptService, UserService, AdminService, PrismaService, PsychologistService],
+  imports: [AuthModule, ChatModule, ScheduleModule.forRoot()],
+  controllers: [AppController, YandexGptController, UserController, AdminController, PsychologistController, ConsultationController],
+  providers: [AppService, YandexGptService, UserService, AdminService, PrismaService, PsychologistService, ConsultationService, ChatMonitorService],
   exports: [YandexGptService]
 })
 export class AppModule { }

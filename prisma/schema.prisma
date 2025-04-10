@@ -19,6 +19,8 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
   password  String
+
+  Consultation Consultation[]
 }
 
 model Admin {
@@ -42,12 +44,13 @@ model Psychologist {
 }
 
 model Message {
-  id       Int    @id @default(autoincrement())
-  chatId   String
-  title    String
-  position String
-  text     String
-  chat     Chat   @relation(fields: [chatId], references: [chatId])
+  id        Int      @id @default(autoincrement())
+  chatId    String
+  title     String
+  position  String
+  text      String
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [chatId])
 }
 
 model Chat {
@@ -55,4 +58,22 @@ model Chat {
   members  String[]
   messages Message[]
   call     Boolean   @default(false)
+}
+
+model Consultation {
+  id        String      @id @default(cuid())
+  chatId    String
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  questions Questions[]
+  createdAt DateTime    @default(now())
+}
+
+model Questions {
+  id            Int            @id @default(autoincrement())
+  chatId        String
+  userId        String
+  question      String
+  answer        String
+  consultations Consultation[]
 }

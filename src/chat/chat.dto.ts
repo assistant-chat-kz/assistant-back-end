@@ -3,4 +3,5 @@ export interface Message {
     position: 'RIGHT' | 'LEFT';
     text: string;
     call?: boolean;
+    createdAt: Date;
 }
