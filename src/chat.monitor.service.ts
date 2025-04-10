@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { ChatService } from './chat/chat.service';
 import { ChatGateway } from './chat.gateway';
+import { ConsultationService } from './consultation/consultation.service';
 
 @Injectable()
 export class ChatMonitorService {
     constructor(
         private readonly chatService: ChatService,
+        private readonly consultationService: ConsultationService,
         private readonly chatGateway: ChatGateway,
     ) { }
 
@@ -18,26 +20,28 @@ export class ChatMonitorService {
         for (const chat of chats) {
             const lastMessage = await this.chatService.getLastMessage(chat.chatId);
 
+            const existingConsultation = await this.consultationService.findByChatId(chat.chatId);
+
+            console.log(existingConsultation, 'existingConsultation')
+            if (existingConsultation) {
+                continue;
+            }
+
             if (!lastMessage) {
                 this.chatGateway.sendSurvey(chat.chatId);
                 continue;
             }
 
             const lastMessageTime = new Date(lastMessage.createdAt);
-
             const diffMilliseconds = now.getTime() - lastMessageTime.getTime();
             const diffMinutes = diffMilliseconds / 1000 / 60;
-
-            console.log(`Last message time: ${lastMessageTime}`);
-            console.log(`Current time: ${now}`);
-            console.log(`Difference in milliseconds: ${diffMilliseconds}`);
-            console.log(`Difference in minutes: ${diffMinutes}`);
 
             if (diffMinutes >= 5) {
                 this.chatGateway.sendSurvey(chat.chatId);
             }
         }
     }
+
 
 
 }

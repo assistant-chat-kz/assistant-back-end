@@ -10,6 +10,18 @@ export class ConsultationService {
     ) { }
 
     async createConsultation(chatId: string, user: UserDto, answers: Record<string, string | null>) {
+        const existingConsultation = await this.prisma.consultation.findFirst({
+            where: {
+                chatId: chatId,
+            },
+            include: {
+                questions: true,
+            }
+        });
+
+        if (existingConsultation) {
+            return existingConsultation;
+        }
 
         const questions: Question[] = Object.entries(answers).map(([question, answer]) => ({
             question,
@@ -41,6 +53,7 @@ export class ConsultationService {
         return consultation;
     }
 
+
     async getConsulataionsById(chatId: string, userId: string) {
         return this.prisma.consultation.findMany({
             where: { chatId, userId },
@@ -55,5 +68,15 @@ export class ConsultationService {
             }
         })
     }
+
+    async findByChatId(chatId: string) {
+        return this.prisma.consultation.findFirst({
+            where: { chatId },
+            include: {
+                questions: true
+            }
+        });
+    }
+
 
 }
