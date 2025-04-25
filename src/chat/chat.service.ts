@@ -185,4 +185,19 @@ export class ChatService {
         return chat?.messages?.[0] || null;
     }
 
+    async insertPsyInChat(chatId: string, psyId: string) {
+        const chat = await this.prisma.chat.findUnique({
+            where: { chatId }
+        })
+
+        if (!chat) throw new Error("Чат не найден");
+
+        const updateChat = await this.prisma.chat.update({
+            where: { chatId },
+            data: { psy: psyId }
+        })
+
+        return updateChat
+
+    }
 }

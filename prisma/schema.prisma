@@ -58,12 +58,14 @@ model Chat {
   members  String[]
   messages Message[]
   call     Boolean   @default(false)
+  psy      String?
 }
 
 model Consultation {
   id        String      @id @default(cuid())
   chatId    String
   userId    String
+  psyId     String?
   user      User        @relation(fields: [userId], references: [id])
   questions Questions[]
   createdAt DateTime    @default(now())
@@ -73,6 +75,7 @@ model Questions {
   id            Int            @id @default(autoincrement())
   chatId        String
   userId        String
+  psyId         String?
   question      String
   answer        String
   consultations Consultation[]

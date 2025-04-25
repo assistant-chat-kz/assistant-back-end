@@ -17,15 +17,15 @@ export class ChatMonitorService {
         const chats = await this.chatService.getAllChats();
         const now = new Date();
 
+
         for (const chat of chats) {
             const lastMessage = await this.chatService.getLastMessage(chat.chatId);
 
-            const existingConsultation = await this.consultationService.findByChatId(chat.chatId);
+            // const existingConsultation = await this.consultationService.findByChatId(chat.chatId);
 
-            console.log(existingConsultation, 'existingConsultation')
-            if (existingConsultation) {
-                continue;
-            }
+            // if (existingConsultation) {
+            //     continue;
+            // }
 
             if (!lastMessage) {
                 this.chatGateway.sendSurvey(chat.chatId);
@@ -36,9 +36,10 @@ export class ChatMonitorService {
             const diffMilliseconds = now.getTime() - lastMessageTime.getTime();
             const diffMinutes = diffMilliseconds / 1000 / 60;
 
-            if (diffMinutes >= 5) {
-                this.chatGateway.sendSurvey(chat.chatId);
-            }
+            // if (diffMinutes >= 5) {
+            //     this.chatGateway.sendSurvey(chat.chatId);
+            // }
+            this.chatGateway.sendSurvey(chat.chatId);
         }
     }
 

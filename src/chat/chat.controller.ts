@@ -28,4 +28,8 @@ export class ChatController {
     callPsyInChat(@Param('chatId') chatId: string, @Body() body: { call: boolean }) {
         return this.chatService.callPsyInChat(chatId, body.call)
     }
+    @Put(':chatId/psyInChat')
+    insertPsyInChat(@Param('chatId') chatId: string, @Body() body: { psyId: string }) {
+        return this.chatService.insertPsyInChat(chatId, body.psyId)
+    }
 } 

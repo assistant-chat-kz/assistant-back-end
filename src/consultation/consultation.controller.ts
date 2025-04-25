@@ -8,8 +8,8 @@ export class ConsultationController {
     constructor(private readonly consultationService: ConsultationService) { }
 
     @Post()
-    createConsultation(@Body() body: { chatId: string, user: UserDto, answers: Record<string, string>; }) {
-        return this.consultationService.createConsultation(body.chatId, body.user, body.answers)
+    createConsultation(@Body() body: { chatId: string, user: UserDto, answers: Record<string, string>, psyId?: string; }) {
+        return this.consultationService.createConsultation(body.chatId, body.user, body.answers, body.psyId)
     }
 
     @Get(':chatId')

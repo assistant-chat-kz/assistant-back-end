@@ -9,19 +9,19 @@ export class ConsultationService {
         private prisma: PrismaService
     ) { }
 
-    async createConsultation(chatId: string, user: UserDto, answers: Record<string, string | null>) {
-        const existingConsultation = await this.prisma.consultation.findFirst({
-            where: {
-                chatId: chatId,
-            },
-            include: {
-                questions: true,
-            }
-        });
+    async createConsultation(chatId: string, user: UserDto, answers: Record<string, string | null>, psyId?: string) {
+        // const existingConsultation = await this.prisma.consultation.findFirst({
+        //     where: {
+        //         chatId: chatId,
+        //     },
+        //     include: {
+        //         questions: true,
+        //     }
+        // });
 
-        if (existingConsultation) {
-            return existingConsultation;
-        }
+        // if (existingConsultation) {
+        //     return existingConsultation;
+        // }
 
         const questions: Question[] = Object.entries(answers).map(([question, answer]) => ({
             question,
@@ -36,12 +36,14 @@ export class ConsultationService {
                         id: user.id
                     }
                 },
+                psyId: psyId,
                 questions: {
                     create: questions.map((question) => ({
                         chatId: chatId,
                         userId: user.id,
                         question: question.question,
-                        answer: question.answer
+                        answer: question.answer,
+
                     }))
                 }
             },
