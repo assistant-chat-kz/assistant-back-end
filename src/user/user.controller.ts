@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, Put } from "@nestjs/common";
 import { UserService } from "./user.service";
 
 @Controller('users')
@@ -14,4 +14,10 @@ export class UserController {
     async getUserById(@Param('id') id: string) {
         return this.userService.getUserById(id);
     }
+
+    @Put(':id')
+    async verifyUser(@Param('id') id: string) {
+        return this.userService.verifyUser(id)
+    }
+
 }

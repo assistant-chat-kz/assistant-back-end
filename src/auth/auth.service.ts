@@ -55,6 +55,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!user.verify) {
+      throw new UnauthorizedException('User is not verified');
+    }
+
     const payload = { userId: user.id, email: user.email, name: user.name, surname: user.surname };
     const accessToken = this.jwtService.sign(payload);
 

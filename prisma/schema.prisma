@@ -19,6 +19,7 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
   password  String
+  verify    Boolean  @default(false)
 
   Consultation Consultation[]
 }

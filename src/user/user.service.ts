@@ -14,4 +14,17 @@ export class UserService {
             where: { id },
         });
     }
+
+    async verifyUser(id: string) {
+        const user = this.prisma.user.findUnique({
+            where: { id, verify: false }
+        })
+
+        if (!user) throw new Error('Пользователя такого нет')
+
+        return this.prisma.user.update({
+            where: { id },
+            data: { verify: true }
+        })
+    }
 }
