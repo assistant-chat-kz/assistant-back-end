@@ -10,18 +10,6 @@ export class ConsultationService {
     ) { }
 
     async createConsultation(chatId: string, user: UserDto, answers: Record<string, string | null>, psyId?: string) {
-        // const existingConsultation = await this.prisma.consultation.findFirst({
-        //     where: {
-        //         chatId: chatId,
-        //     },
-        //     include: {
-        //         questions: true,
-        //     }
-        // });
-
-        // if (existingConsultation) {
-        //     return existingConsultation;
-        // }
 
         const questions: Question[] = Object.entries(answers).map(([question, answer]) => ({
             question,
@@ -51,6 +39,13 @@ export class ConsultationService {
                 questions: true,
             }
         });
+
+        await this.prisma.chat.update({
+            where: { chatId: chatId },
+            data: {
+                members: []
+            }
+        })
 
         return consultation;
     }
