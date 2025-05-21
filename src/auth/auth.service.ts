@@ -41,6 +41,7 @@ export class AuthService {
               surname,
               email,
               password: hashedPassword,
+              verify: true
             },
           });
 
