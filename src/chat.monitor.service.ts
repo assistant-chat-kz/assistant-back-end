@@ -36,10 +36,9 @@ export class ChatMonitorService {
             const diffMilliseconds = now.getTime() - lastMessageTime.getTime();
             const diffMinutes = diffMilliseconds / 1000 / 60;
 
-            // if (diffMinutes >= 5) {
-            //     this.chatGateway.sendSurvey(chat.chatId);
-            // }
-            this.chatGateway.sendSurvey(chat.chatId);
+            if (diffMinutes >= 5) {
+                this.chatGateway.sendSurvey(chat.chatId);
+            }
         }
     }
 
