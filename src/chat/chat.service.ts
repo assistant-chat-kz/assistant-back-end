@@ -64,7 +64,7 @@ export class ChatService {
         const updatedChat = await this.prisma.chat.update({
             where: { chatId },
             data: {
-                members: members ? { set: members } : undefined, // Убираем undefined
+                members: members ? { set: members } : undefined,
                 messages: {
                     create: messages,
                 },
