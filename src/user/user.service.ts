@@ -19,6 +19,23 @@ export class UserService {
         });
     }
 
+    async visitUser(id: string) {
+        try {
+
+            return await this.prisma.user.update({
+                where: { id },
+                data: { visits: { increment: 1 } },
+            });
+        } catch (err) {
+
+            return await this.prisma.userNoAuth.update({
+                where: { id },
+                data: { visits: { increment: 1 } },
+            });
+        }
+    }
+
+
     async verifyUser(id: string) {
         const user = this.prisma.user.findUnique({
             where: { id, verify: false }

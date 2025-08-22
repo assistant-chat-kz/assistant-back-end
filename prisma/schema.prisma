@@ -15,11 +15,13 @@ model User {
   createdAt    DateTime       @default(now())
   password     String
   verify       Boolean        @default(false)
+  visits       Int            @default(0)
   Consultation Consultation[]
 }
 
 model UserNoAuth {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
+  visits Int    @default(0)
 }
 
 model Admin {
