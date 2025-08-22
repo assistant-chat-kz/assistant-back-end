@@ -12,6 +12,11 @@ export class ConsultationController {
         return this.consultationService.createConsultation(body.chatId, body.user, body.answers, body.psyId)
     }
 
+    @Post('/createConsultationNoAuth')
+    createConsultationNoAuth(@Body() body: { chatId: string, user: string, answers: Record<string, string>, psyId?: string; }) {
+        return this.consultationService.createConsultationNoAuth(body.chatId, body.user, body.answers, body.psyId)
+    }
+
     @Get(':chatId')
     getConsultationsById(
         @Param('chatId') chatId: string,

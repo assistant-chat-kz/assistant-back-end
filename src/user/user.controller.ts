@@ -10,6 +10,11 @@ export class UserController {
         return this.userService.getAll()
     }
 
+    @Get('/noAuth')
+    async getAllUsersNoAuth() {
+        return this.userService.getAllUsersNoAuth()
+    }
+
     @Get(':id')
     async getUserById(@Param('id') id: string) {
         return this.userService.getUserById(id);

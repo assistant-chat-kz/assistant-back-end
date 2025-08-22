@@ -48,6 +48,14 @@ export class AuthService {
     return { id: user.id, email: user.email };
   }
 
+  async createUserNoAuth(id: string) {
+    return this.prisma.userNoAuth.create({
+      data: { id },
+    });
+  }
+
+
+
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 

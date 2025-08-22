@@ -11,6 +11,11 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @Post("createUserNoAuth")
+  async createUserNoAuth(@Body("id") id: string) {
+    return this.authService.createUserNoAuth(id);
+  }
+
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);

@@ -7,21 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Position {
-  RIGHT
-  LEFT
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  surname      String
+  email        String         @unique
+  createdAt    DateTime       @default(now())
+  password     String
+  verify       Boolean        @default(false)
+  Consultation Consultation[]
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  surname   String
-  email     String   @unique
-  createdAt DateTime @default(now())
-  password  String
-  verify    Boolean  @default(false)
-
-  Consultation Consultation[]
+model UserNoAuth {
+  id String @id @default(cuid())
 }
 
 model Admin {
@@ -57,27 +55,34 @@ model Message {
 model Chat {
   chatId   String    @id
   members  String[]
-  messages Message[]
   call     Boolean   @default(false)
   psy      String?
+  messages Message[]
 }
 
 model Consultation {
-  id        String      @id @default(cuid())
-  chatId    String
-  userId    String
-  psyId     String?
-  user      User        @relation(fields: [userId], references: [id])
-  questions Questions[]
-  createdAt DateTime    @default(now())
+  id           String      @id @default(cuid())
+  chatId       String
+  userId       String?
+  createdAt    DateTime    @default(now())
+  psyId        String?
+  userNoAuthId String?
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  questions    Questions[] @relation("ConsultationToQuestions")
 }
 
 model Questions {
   id            Int            @id @default(autoincrement())
   chatId        String
-  userId        String
-  psyId         String?
+  userId        String?
   question      String
   answer        String
-  consultations Consultation[]
+  psyId         String?
+  userNoAuthId  String?
+  consultations Consultation[] @relation("ConsultationToQuestions")
+}
+
+enum Position {
+  RIGHT
+  LEFT
 }

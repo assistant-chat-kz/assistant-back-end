@@ -131,6 +131,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             chatId,
             message: "Прошло 5 минут без активности. Пожалуйста, пройдите опрос.",
         });
-        console.log(`📋 Опросник отправлен в чат ${chatId}`);
+        // console.log(`📋 Опросник отправлен в чат ${chatId}`);
     }
 }
