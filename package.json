@@ -21,6 +21,7 @@
     "vercel-build": "npm run build"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
     "@nestjs/class-validator": "^0.13.4",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
