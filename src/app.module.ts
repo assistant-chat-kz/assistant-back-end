@@ -7,6 +7,7 @@ import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { YandexGptController } from './yandex-gpt/yandex-gpt.controller';
 import { ClaudeAiController } from './claude-ai/claude-ai.controller';
+import { EmotionController } from './emotion/emotion.controller';
 // import { ChatController } from './chat/chat.controller';
 // import { ChatService } from './chat/chat.service';
 import { PrismaService } from './prisma.service'
@@ -23,7 +24,7 @@ import { ChatMonitorService } from './chat.monitor.service';
 
 @Module({
   imports: [AuthModule, ChatModule, ScheduleModule.forRoot()],
-  controllers: [AppController, YandexGptController, UserController, AdminController, PsychologistController, ConsultationController, ClaudeAiController],
+  controllers: [AppController, YandexGptController, UserController, AdminController, PsychologistController, ConsultationController, ClaudeAiController, EmotionController],
   providers: [AppService, YandexGptService, UserService, AdminService, PrismaService, PsychologistService, ConsultationService, ChatMonitorService],
   exports: [YandexGptService]
 })

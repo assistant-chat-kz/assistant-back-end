@@ -9,7 +9,7 @@ export class ClaudeAiController {
     });
 
     @Post("stream")
-    async stream(@Body() body: { prompt: string }, @Res() res: Response) {
+    async stream(@Body() body: { prompt: string, emotion: string }, @Res() res: Response) {
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
@@ -20,7 +20,7 @@ export class ClaudeAiController {
             messages: [
                 {
                     role: "user",
-                    content: body.prompt,
+                    content: `${body.prompt}, respond to the client's emotional dependence - ${body.emotion}`,
                 },
             ],
         });
