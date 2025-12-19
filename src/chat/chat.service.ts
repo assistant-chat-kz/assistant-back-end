@@ -50,13 +50,15 @@ export class ChatService {
                 }
             });
 
+
+
             console.log("Сообщение успешно сохранено:", JSON.stringify(newMessage, null, 2));
             this.chatGateway.server.to(chatId).emit("newMessage", newMessage);
 
             return newMessage;
         } catch (error) {
             console.error("Ошибка при сохранении сообщения:", error);
-            throw new Error("Ошибка при отправке сообщения"); // Не кидай raw Prisma error
+            throw new Error("Ошибка при отправке сообщения");
         }
     }
 
@@ -71,7 +73,6 @@ export class ChatService {
             },
             include: { messages: true },
         });
-
         // this.chatGateway.server.to(chatId).emit("chatUpdated", updatedChat);
 
         return updatedChat;

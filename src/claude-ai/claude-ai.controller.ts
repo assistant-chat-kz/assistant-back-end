@@ -14,6 +14,8 @@ export class ClaudeAiController {
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
 
+        console.log(body.emotion, 'emo')
+
         const stream = await this.client.messages.stream({
             model: "claude-sonnet-4-5",
             max_tokens: 1000,

@@ -21,9 +21,11 @@ import { ConsultationService } from './consultation/consultation.service';
 
 import { ScheduleModule } from '@nestjs/schedule';
 import { ChatMonitorService } from './chat.monitor.service';
+// import { SpeechModule } from './whisper/speech.module';
+import { SpeechModule } from './speech/speech.module';
 
 @Module({
-  imports: [AuthModule, ChatModule, ScheduleModule.forRoot()],
+  imports: [AuthModule, ChatModule, ScheduleModule.forRoot(), SpeechModule],
   controllers: [AppController, YandexGptController, UserController, AdminController, PsychologistController, ConsultationController, ClaudeAiController, EmotionController],
   providers: [AppService, YandexGptService, UserService, AdminService, PrismaService, PsychologistService, ConsultationService, ChatMonitorService],
   exports: [YandexGptService]
