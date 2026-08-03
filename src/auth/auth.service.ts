@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma.service';
 import { RegisterDto, LoginDto } from './auth.dto';
+import { classifyAudienceSource } from 'src/user/audience-source';
 
 @Injectable()
 export class AuthService {
@@ -15,13 +16,15 @@ export class AuthService {
     const { name, surname, email, password, userType } = registerDto;
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const normalizedEmail = email.trim().toLowerCase();
+    const source = classifyAudienceSource(normalizedEmail);
 
     const user =
       userType === 'admin' ? await this.prisma.admin.create({
         data: {
           name,
           surname,
-          email,
+          email: normalizedEmail,
           password: hashedPassword,
           userType
         },
@@ -30,7 +33,7 @@ export class AuthService {
           data: {
             name,
             surname,
-            email,
+          email: normalizedEmail,
             password: hashedPassword,
             userType
           },
@@ -39,25 +42,33 @@ export class AuthService {
             data: {
               name,
               surname,
-              email,
+              email: normalizedEmail,
               password: hashedPassword,
-              verify: true
+              verify: true,
+              source,
             },
           });
 
-    return { id: user.id, email: user.email };
+    return {
+      id: user.id,
+      email: user.email,
+      source: 'source' in user ? user.source : undefined,
+    };
   }
 
   async createUserNoAuth(id: string) {
-    return this.prisma.userNoAuth.create({
-      data: { id },
+    return this.prisma.userNoAuth.upsert({
+      where: { id },
+      create: { id },
+      update: {},
     });
   }
 
 
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const email = loginDto.email.trim().toLowerCase();
+    const { password } = loginDto;
 
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -68,14 +79,29 @@ export class AuthService {
       throw new UnauthorizedException('User is not verified');
     }
 
-    const payload = { userId: user.id, email: user.email, name: user.name, surname: user.surname };
+    const source = classifyAudienceSource(user.email);
+    const normalizedUser =
+      user.source === source
+        ? user
+        : await this.prisma.user.update({
+            where: { id: user.id },
+            data: { source },
+          });
+    const payload = {
+      userId: normalizedUser.id,
+      email: normalizedUser.email,
+      name: normalizedUser.name,
+      surname: normalizedUser.surname,
+      source: normalizedUser.source,
+    };
     const accessToken = this.jwtService.sign(payload);
 
-    return { accessToken };
+    return { accessToken, source: normalizedUser.source };
   }
 
   async loginAdmin(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const email = loginDto.email.trim().toLowerCase();
+    const { password } = loginDto;
 
     const admin = await this.prisma.admin.findUnique({ where: { email } });
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
@@ -89,7 +115,8 @@ export class AuthService {
   }
 
   async loginPsychologist(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const email = loginDto.email.trim().toLowerCase();
+    const { password } = loginDto;
 
     const psychologist = await this.prisma.psychologist.findUnique({ where: { email } });
     if (!psychologist || !(await bcrypt.compare(password, psychologist.password))) {

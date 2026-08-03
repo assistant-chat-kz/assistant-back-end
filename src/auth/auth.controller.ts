@@ -11,8 +11,8 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @Post("createUserNoAuth")
-  async createUserNoAuth(@Body("id") id: string) {
+  @Post('createUserNoAuth')
+  async createUserNoAuth(@Body('id') id: string) {
     return this.authService.createUserNoAuth(id);
   }
 

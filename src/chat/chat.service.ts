@@ -112,7 +112,7 @@ export class ChatService {
         try {
             const chat = await this.prisma.chat.findUnique({
                 where: { chatId },
-                select: { members: true },
+                select: { members: true, psy: true },
             });
 
             if (!chat) throw new Error("Чат не найден");
@@ -120,11 +120,15 @@ export class ChatService {
 
             const updatedMembers = new Set(chat.members);
             updatedMembers.delete(userId);
+            const psychologistIsLeaving = chat.psy === userId;
 
             const updatedChat = await this.prisma.chat.update({
                 where: { chatId },
                 data: {
                     members: { set: Array.from(updatedMembers) },
+                    psy: psychologistIsLeaving ? null : undefined,
+                    call: psychologistIsLeaving ? false : undefined,
+                    consultationEndedAt: psychologistIsLeaving ? new Date() : undefined,
                 },
                 include: { messages: true },
             });
@@ -193,12 +197,38 @@ export class ChatService {
 
         if (!chat) throw new Error("Чат не найден");
 
+        if (chat.psy === psyId && chat.consultationStartedAt) {
+            return chat;
+        }
+
         const updateChat = await this.prisma.chat.update({
             where: { chatId },
-            data: { psy: psyId }
+            data: {
+                psy: psyId,
+                call: false,
+                consultationPsychologistId: psyId,
+                consultationStartedAt: new Date(),
+                consultationEndedAt: null,
+                surveyRequestedAt: null,
+                surveyCompletedAt: null,
+            }
         })
 
         return updateChat
 
+    }
+
+    async markSurveyRequested(chatId: string) {
+        return this.prisma.chat.updateMany({
+            where: {
+                chatId,
+                psy: null,
+                consultationStartedAt: { not: null },
+                consultationEndedAt: { not: null },
+                surveyRequestedAt: null,
+                surveyCompletedAt: null,
+            },
+            data: { surveyRequestedAt: new Date() },
+        });
     }
 }

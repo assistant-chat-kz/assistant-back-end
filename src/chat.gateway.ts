@@ -39,24 +39,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.emit("userConnected", { userId });
     }
 
-    handleDisconnect(client: Socket) {
+    async handleDisconnect(client: Socket) {
         const userId = [...this.users.entries()].find(([_, id]) => id === client.id)?.[0];
 
         if (userId) {
             console.log(`🔴 Пользователь ${userId} отключился (socket: ${client.id})`);
 
+            const chatIds = this.userRooms.get(userId) || new Set();
+            for (const chatId of chatIds) {
+                try {
+                    const updatedChat = await this.chatService.leaveChat(chatId, userId);
+                    this.server.to(chatId).emit("userLeave", {
+                        userId,
+                        chatId,
+                        members: updatedChat.members,
+                        psy: updatedChat.psy,
+                    });
+                } catch (error: any) {
+                    console.error(`❌ Ошибка выхода из чата ${chatId}:`, error.message);
+                }
+            }
+
             this.users.delete(userId);
-
-            // const chatIds = this.userRooms.get(userId) || new Set();
-
-            // chatIds.forEach(async (chatId) => {
-            //     const updatedChat = await this.chatService.leaveChat(chatId, userId);
-
-            //     console.log(`📌🔴 Пользователь ${userId} вышел из чата ${chatId}`);
-
-            //     this.server.to(chatId).emit("userLeave", { userId, chatId, members: updatedChat.members });
-            // });
-
             this.userRooms.delete(userId);
 
             this.server.emit("userDisconnected", { userId });
@@ -104,10 +108,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.userRooms.get(userId)!.delete(chatId);
 
             const updatedChat = await this.chatService.leaveChat(chatId, userId);
+            client.leave(chatId);
 
             console.log(`📌🔴 Пользователь ${userId} вышел из чата ${chatId}`);
 
-            this.server.to(chatId).emit("userLeave", { userId, chatId, members: updatedChat.members });
+            this.server.to(chatId).emit("userLeave", {
+                userId,
+                chatId,
+                members: updatedChat.members,
+                psy: updatedChat.psy,
+            });
         } catch (error) {
             console.error("❌ Ошибка в leaveChat:", error.message);
         }

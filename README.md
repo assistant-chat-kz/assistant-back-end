@@ -2,6 +2,25 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
 
+## Aikouch configuration
+
+Copy `.env.example` to `.env`, set `DATABASE_URL`, `JWT_SECRET`, and the
+GigaChat credentials. Text generation uses `GigaChat-2-Max` by default.
+`YANDEX_FOLDER_ID` is retained only for speech recognition.
+
+After updating an existing environment, apply the Prisma migration before
+starting the API:
+
+```bash
+npx prisma migrate deploy
+npm run build
+npm run start:prod
+```
+
+User analytics classify `@telecom.kz` as Kazakhtelecom. Additional corporate
+domains can be supplied through the comma-separated
+`KAZAKHTELECOM_EMAIL_DOMAINS` variable.
+
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 

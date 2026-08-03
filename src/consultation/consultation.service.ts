@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma.service";
 import { UserDto } from "src/user/user.dto";
 import { Question } from "./consultation.dto";
@@ -10,87 +10,134 @@ export class ConsultationService {
     ) { }
 
     async createConsultation(chatId: string, user: UserDto, answers: Record<string, string | null>, psyId?: string) {
-
         const questions: Question[] = Object.entries(answers).map(([question, answer]) => ({
             question,
             answer: String(answer),
         }));
+        const chat = await this.prisma.chat.findUnique({ where: { chatId } });
+        if (!chat?.consultationStartedAt) {
+            throw new BadRequestException("Для этого чата нет завершённой консультации");
+        }
 
-        const consultation = await this.prisma.consultation.create({
-            data: {
-                chatId: chatId,
-                user: {
-                    connect: {
-                        id: user.id
-                    }
+        const existing = await this.prisma.consultation.findUnique({
+            where: {
+                chatId_sessionStartedAt: {
+                    chatId,
+                    sessionStartedAt: chat.consultationStartedAt,
                 },
-                psyId: psyId,
-                questions: {
-                    create: questions.map((question) => ({
-                        chatId: chatId,
-                        userId: user.id,
-                        question: question.question,
-                        answer: question.answer,
-
-                    }))
-                }
             },
-            include: {
-                questions: true,
-            }
+            include: { questions: true },
         });
+        if (existing) return existing;
 
-        await this.prisma.chat.update({
-            where: { chatId: chatId },
-            data: {
-                members: []
-            }
-        })
+        if (!chat.surveyRequestedAt || chat.surveyCompletedAt) {
+            throw new BadRequestException("Оценка для этой консультации недоступна");
+        }
 
-        return consultation;
+        const effectivePsyId = chat.consultationPsychologistId || psyId;
+
+        return this.prisma.$transaction(async (transaction) => {
+            const consultation = await transaction.consultation.create({
+                data: {
+                    chatId,
+                    sessionStartedAt: chat.consultationStartedAt,
+                    user: { connect: { id: user.id } },
+                    psyId: effectivePsyId,
+                    questions: {
+                        create: questions.map((question) => ({
+                            chatId,
+                            userId: user.id,
+                            psyId: effectivePsyId,
+                            question: question.question,
+                            answer: question.answer,
+                        })),
+                    },
+                },
+                include: { questions: true },
+            });
+
+            await transaction.chat.update({
+                where: { chatId },
+                data: {
+                    members: { set: ["Assistant", user.id] },
+                    call: false,
+                    psy: null,
+                    surveyCompletedAt: new Date(),
+                },
+            });
+
+            return consultation;
+        });
     }
 
     async createConsultationNoAuth(chatId: string, userNoAuthId: string, answers: Record<string, string | null>, psyId?: string) {
-
         const questions: Question[] = Object.entries(answers).map(([question, answer]) => ({
             question,
             answer: String(answer),
         }));
+        const chat = await this.prisma.chat.findUnique({ where: { chatId } });
+        if (!chat?.consultationStartedAt) {
+            throw new BadRequestException("Для этого чата нет завершённой консультации");
+        }
 
-        const consultation = await this.prisma.consultation.create({
-            data: {
-                chatId: chatId,
-                userNoAuthId: userNoAuthId,
-                psyId: psyId,
-                questions: {
-                    create: questions.map((question) => ({
-                        chatId: chatId,
-                        userNoAuthId: userNoAuthId,
-                        question: question.question,
-                        answer: question.answer,
-
-                    }))
-                }
+        const existing = await this.prisma.consultation.findUnique({
+            where: {
+                chatId_sessionStartedAt: {
+                    chatId,
+                    sessionStartedAt: chat.consultationStartedAt,
+                },
             },
-            include: {
-                questions: true,
-            }
+            include: { questions: true },
         });
+        if (existing) return existing;
 
-        await this.prisma.chat.update({
-            where: { chatId: chatId },
-            data: {
-                members: []
-            }
-        })
+        if (!chat.surveyRequestedAt || chat.surveyCompletedAt) {
+            throw new BadRequestException("Оценка для этой консультации недоступна");
+        }
 
-        return consultation;
+        const effectivePsyId = chat.consultationPsychologistId || psyId;
+
+        return this.prisma.$transaction(async (transaction) => {
+            const consultation = await transaction.consultation.create({
+                data: {
+                    chatId,
+                    sessionStartedAt: chat.consultationStartedAt,
+                    userNoAuthId,
+                    psyId: effectivePsyId,
+                    questions: {
+                        create: questions.map((question) => ({
+                            chatId,
+                            userNoAuthId,
+                            psyId: effectivePsyId,
+                            question: question.question,
+                            answer: question.answer,
+                        })),
+                    },
+                },
+                include: { questions: true },
+            });
+
+            await transaction.chat.update({
+                where: { chatId },
+                data: {
+                    members: { set: ["Assistant", userNoAuthId] },
+                    call: false,
+                    psy: null,
+                    surveyCompletedAt: new Date(),
+                },
+            });
+
+            return consultation;
+        });
     }
 
 
     async getConsulataionsById(chatId: string, userId: string) {
         return this.prisma.consultation.findMany({
-            where: { chatId, userId },
+            where: {
+                chatId,
+                OR: [{ userId }, { userNoAuthId: userId }],
+            },
             include: { questions: true }
         })
     }

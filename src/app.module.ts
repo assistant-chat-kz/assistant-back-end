@@ -2,11 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { YandexGptService } from './services/yandex-gpt.service';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
-import { YandexGptController } from './yandex-gpt/yandex-gpt.controller';
-import { ClaudeAiController } from './claude-ai/claude-ai.controller';
 import { EmotionController } from './emotion/emotion.controller';
 // import { ChatController } from './chat/chat.controller';
 // import { ChatService } from './chat/chat.service';
@@ -23,11 +20,13 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ChatMonitorService } from './chat.monitor.service';
 // import { SpeechModule } from './whisper/speech.module';
 import { SpeechModule } from './speech/speech.module';
+import { GigaChatController } from './gigachat/gigachat.controller';
+import { GigaChatService } from './gigachat/gigachat.service';
 
 @Module({
   imports: [AuthModule, ChatModule, ScheduleModule.forRoot(), SpeechModule],
-  controllers: [AppController, YandexGptController, UserController, AdminController, PsychologistController, ConsultationController, ClaudeAiController, EmotionController],
-  providers: [AppService, YandexGptService, UserService, AdminService, PrismaService, PsychologistService, ConsultationService, ChatMonitorService],
-  exports: [YandexGptService]
+  controllers: [AppController, GigaChatController, UserController, AdminController, PsychologistController, ConsultationController, EmotionController],
+  providers: [AppService, GigaChatService, UserService, AdminService, PrismaService, PsychologistService, ConsultationService, ChatMonitorService],
+  exports: [GigaChatService]
 })
 export class AppModule { }
