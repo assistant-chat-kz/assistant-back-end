@@ -1,6 +1,41 @@
 import { BadRequestException, Body, Controller, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { GigaChatService } from './gigachat.service';
+import {
+  GigaChatConversationMessage,
+  GigaChatService,
+} from './gigachat.service';
+
+const MAX_HISTORY_MESSAGES = 30;
+const MAX_MESSAGE_LENGTH = 4_000;
+
+function normalizeMessages(
+  messages: GigaChatConversationMessage[] | undefined,
+  prompt: string | undefined,
+): GigaChatConversationMessage[] {
+  const normalized = Array.isArray(messages)
+    ? messages
+        .filter(
+          (message) =>
+            (message?.role === 'user' || message?.role === 'assistant') &&
+            typeof message.content === 'string' &&
+            message.content.trim(),
+        )
+        .map((message) => ({
+          role: message.role,
+          content: message.content.trim().slice(0, MAX_MESSAGE_LENGTH),
+        }))
+        .slice(-MAX_HISTORY_MESSAGES)
+    : [];
+
+  if (normalized.length === 0 && prompt?.trim()) {
+    normalized.push({
+      role: 'user',
+      content: prompt.trim().slice(0, MAX_MESSAGE_LENGTH),
+    });
+  }
+
+  return normalized;
+}
 
 @Controller('gigachat')
 export class GigaChatController {
@@ -8,11 +43,17 @@ export class GigaChatController {
 
   @Post('stream')
   async stream(
-    @Body() body: { prompt?: string; emotion?: string },
+    @Body()
+    body: {
+      prompt?: string;
+      emotion?: string;
+      messages?: GigaChatConversationMessage[];
+    },
     @Res() response: Response,
   ) {
-    if (!body.prompt?.trim()) {
-      throw new BadRequestException('prompt is required');
+    const messages = normalizeMessages(body.messages, body.prompt);
+    if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+      throw new BadRequestException('a user message is required');
     }
 
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -21,7 +62,7 @@ export class GigaChatController {
 
     try {
       await this.gigaChatService.streamText(
-        body.prompt,
+        messages,
         body.emotion,
         (chunk) => response.write(chunk),
       );

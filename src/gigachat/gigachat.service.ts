@@ -1,6 +1,11 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import axios from 'axios';
 import { randomUUID } from 'crypto';
+import * as https from 'https';
+
+const gigachatHttpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 interface GigaChatTokenResponse {
   access_token: string;
@@ -10,6 +15,26 @@ interface GigaChatTokenResponse {
 interface CachedToken {
   value: string;
   expiresAt: number;
+}
+
+export interface GigaChatConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export function buildGigaChatSystemPrompt(emotion?: string): string {
+  return `Ты — бережный психологический помощник. Пиши тепло, спокойно, коротко и по делу. Не ставь диагнозы.
+
+Правила диалога:
+1. Сначала определи, достаточно ли информации, чтобы предложить полезное и конкретное решение.
+2. Если информации недостаточно, задай ровно один короткий уточняющий вопрос и дождись ответа пользователя. В сообщении с уточняющим вопросом не предлагай решение, не добавляй список и не задавай несколько вопросов.
+3. После ответа пользователя учитывай всю историю диалога. Если нужно ещё одно уточнение, снова задай только один вопрос. Не повторяй вопросы, на которые пользователь уже ответил.
+4. Не задавай больше трёх уточняющих вопросов по одной проблеме. После этого предложи лучшее возможное решение на основе имеющейся информации и явно обозначь важные допущения.
+5. Когда информации достаточно, не задавай новый вопрос. Дай решение одним сообщением: короткое вступление, затем один нумерованный список конкретных и реалистичных шагов с понятными отступами. Не дроби готовое решение на несколько сообщений.
+6. Если пользователь сразу дал достаточно контекста или прямо просит конкретный план, переходи к итоговому решению без формальных уточнений.
+7. Если есть признаки непосредственной опасности для пользователя или окружающих, не откладывай помощь ради уточнений: сначала мягко предложи обратиться по номеру 112 или к человеку рядом.${
+    emotion ? `\nУчитывай эмоциональный фон текущего сообщения: ${emotion}.` : ''
+  }`;
 }
 
 @Injectable()
@@ -67,6 +92,7 @@ export class GigaChatService {
             'Content-Type': 'application/x-www-form-urlencoded',
             RqUID: randomUUID(),
           },
+          httpsAgent: gigachatHttpsAgent,
           timeout: 15_000,
         },
       );
@@ -82,7 +108,7 @@ export class GigaChatService {
   }
 
   async streamText(
-    prompt: string,
+    messages: GigaChatConversationMessage[],
     emotion: string | undefined,
     onChunk: (chunk: string) => void,
     retry = true,
@@ -97,13 +123,9 @@ export class GigaChatService {
           messages: [
             {
               role: 'system',
-              content:
-                'Ты — бережный психологический помощник. Не ставь диагнозы. ' +
-                'Если есть признаки непосредственной опасности, мягко предложи обратиться ' +
-                'в экстренную службу или к человеку рядом.' +
-                (emotion ? ` Учитывай эмоциональный фон: ${emotion}.` : ''),
+              content: buildGigaChatSystemPrompt(emotion),
             },
-            { role: 'user', content: prompt },
+            ...messages,
           ],
           stream: true,
           max_tokens: 2000,
@@ -115,6 +137,7 @@ export class GigaChatService {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
+          httpsAgent: gigachatHttpsAgent,
           responseType: 'stream',
           timeout: 120_000,
         },
@@ -145,7 +168,7 @@ export class GigaChatService {
       if (retry && axios.isAxiosError(error) && error.response?.status === 401) {
         this.cachedToken = undefined;
         await this.getAccessToken(true);
-        return this.streamText(prompt, emotion, onChunk, false);
+        return this.streamText(messages, emotion, onChunk, false);
       }
       this.throwApiError(error, 'GigaChat не смог сформировать ответ');
     }
