@@ -39,6 +39,15 @@ export function buildGigaChatSystemPrompt(emotion?: string): string {
 
 @Injectable()
 export class GigaChatService {
+  // Cloud.ru Evolution Foundation Models (новый провайдер GigaChat API)
+  private readonly cloudRuApiKey = process.env.CLOUD_RU_API_KEY;
+  private readonly cloudRuApiUrl =
+    process.env.CLOUD_RU_API_URL ||
+    'https://foundation-models.api.cloud.ru/v1/chat/completions';
+  private readonly cloudRuModel =
+    process.env.CLOUD_RU_MODEL || process.env.GIGACHAT_MODEL || 'GigaChat-Max';
+
+  // SaluteDevices / Sber GigaChat API (текущий шлюз)
   private readonly oauthUrl =
     process.env.GIGACHAT_OAUTH_URL ||
     'https://ngw.devices.sberbank.ru:9443/api/v2/oauth';
@@ -113,13 +122,19 @@ export class GigaChatService {
     onChunk: (chunk: string) => void,
     retry = true,
   ): Promise<void> {
-    const accessToken = await this.getAccessToken();
+    const isCloudRu = Boolean(this.cloudRuApiKey);
+
+    const targetUrl = isCloudRu ? this.cloudRuApiUrl : this.apiUrl;
+    const targetModel = isCloudRu ? this.cloudRuModel : this.model;
+    const authHeader = isCloudRu
+      ? `Bearer ${this.cloudRuApiKey}`
+      : `Bearer ${await this.getAccessToken()}`;
 
     try {
       const response = await axios.post(
-        this.apiUrl,
+        targetUrl,
         {
-          model: this.model,
+          model: targetModel,
           messages: [
             {
               role: 'system',
@@ -134,10 +149,10 @@ export class GigaChatService {
         {
           headers: {
             Accept: 'text/event-stream',
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: authHeader,
             'Content-Type': 'application/json',
           },
-          httpsAgent: gigachatHttpsAgent,
+          httpsAgent: isCloudRu ? undefined : gigachatHttpsAgent,
           responseType: 'stream',
           timeout: 120_000,
         },
@@ -165,7 +180,7 @@ export class GigaChatService {
         }
       }
     } catch (error: any) {
-      if (retry && axios.isAxiosError(error) && error.response?.status === 401) {
+      if (!isCloudRu && retry && axios.isAxiosError(error) && error.response?.status === 401) {
         this.cachedToken = undefined;
         await this.getAccessToken(true);
         return this.streamText(messages, emotion, onChunk, false);
